@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NürnbergMesse – Mock CRM Card</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy:   #0a1628;
+    --navy2:  #122040;
+    --teal:   #0fc6c6;
+    --orange: #f5820a;
+    --gold:   #f5c842;
+    --white:  #f0f4ff;
+    --muted:  #7a90b8;
+    --card:   #111e35;
+    --border: #1e2f4a;
+    --green:  #12e08a;
+    --red:    #ff4f6a;
+  }
+  html, body { height: 100%; background: var(--navy); font-family: 'Syne', sans-serif; color: var(--white); }
+  body {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px 16px 48px; min-height: 100vh;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(15,198,198,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 10% 90%, rgba(245,130,10,0.06) 0%, transparent 60%),
+      var(--navy);
+  }
+  .header { width: 100%; max-width: 720px; display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+  .header-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 12px var(--teal); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(.8); } }
+  .header h1 { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .header-badge { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--teal); background: rgba(15,198,198,.1); border: 1px solid rgba(15,198,198,.25); padding: 3px 10px; border-radius: 20px; }
+  .search-row { width: 100%; max-width: 720px; display: flex; gap: 10px; margin-bottom: 24px; }
+  .search-row input { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-family: 'DM Mono', monospace; font-size: 14px; color: var(--white); outline: none; transition: border-color .2s; }
+  .search-row input::placeholder { color: var(--muted); }
+  .search-row input:focus { border-color: var(--teal); }
+  .search-row button { background: var(--teal); color: var(--navy); border: none; border-radius: 10px; padding: 12px 20px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: opacity .15s; white-space: nowrap; }
+  .search-row button:hover { opacity: .85; }
+  .status-banner { width: 100%; max-width: 720px; border-radius: 10px; padding: 10px 16px; font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: .05em; margin-bottom: 20px; display: none; align-items: center; gap: 8px; }
+  .status-banner.show { display: flex; }
+  .status-banner.incoming { background: rgba(15,198,198,.1); border: 1px solid rgba(15,198,198,.3); color: var(--teal); }
+  .status-banner.notfound { background: rgba(255,79,106,.08); border: 1px solid rgba(255,79,106,.25); color: var(--red); }
+  .card { width: 100%; max-width: 720px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity .35s ease, transform .35s ease; }
+  .card.visible { opacity: 1; transform: translateY(0); }
+  .card-hero { padding: 28px 28px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 20px; position: relative; }
+  .avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), #0a7ebd); color: var(--navy); letter-spacing: -.02em; }
+  .hero-info { flex: 1; }
+  .hero-info .name { font-size: 22px; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; }
+  .hero-info .company { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .hero-info .phone { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--teal); margin-top: 6px; }
+  .vip-badge { position: absolute; top: 20px; right: 24px; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; }
+  .vip-badge.gold { background: rgba(245,200,66,.15); border: 1px solid rgba(245,200,66,.4); color: var(--gold); }
+  .vip-badge.silver { background: rgba(180,190,210,.12); border: 1px solid rgba(180,190,210,.3); color: #b4bece; }
+  .vip-badge.standard { background: rgba(122,144,184,.1); border: 1px solid rgba(122,144,184,.2); color: var(--muted); }
+  .card-body { display: grid; grid-template-columns: 1fr 1fr; }
+  .section { padding: 20px 24px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .section:nth-child(2n) { border-right: none; }
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .kv-list { display: flex; flex-direction: column; gap: 7px; }
+  .kv { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .kv-key { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  .kv-val { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--white); text-align: right; }
+  .kv-val.accent { color: var(--orange); }
+  .kv-val.green  { color: var(--green); }
+  .kv-val.red    { color: var(--red); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .tag { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; padding: 3px 9px; border-radius: 5px; }
+  .tag.blue   { background:rgba(15,198,198,.12); color:var(--teal); border:1px solid rgba(15,198,198,.2); }
+  .tag.orange { background:rgba(245,130,10,.12); color:var(--orange); border:1px solid rgba(245,130,10,.2); }
+  .tag.muted  { background:rgba(122,144,184,.1); color:var(--muted); border:1px solid rgba(122,144,184,.15); }
+  .ticket-list { display: flex; flex-direction: column; gap: 8px; }
+  .ticket-item { background: var(--navy2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 11px; }
+  .ticket-item .t-id { font-family: 'DM Mono', monospace; color: var(--muted); font-size: 10px; margin-bottom: 3px; }
+  .ticket-item .t-desc { color: var(--white); line-height: 1.4; }
+  .ticket-item .t-status { margin-top: 5px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .t-status.open   { color: var(--orange); }
+  .t-status.review { color: var(--teal); }
+  .placeholder { width: 100%; max-width: 720px; text-align: center; padding: 60px 24px; color: var(--muted); }
+  .placeholder .ph-icon { font-size: 40px; margin-bottom: 16px; opacity: .4; }
+  .placeholder p { font-size: 13px; line-height: 1.7; }
+  .placeholder code { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--card); border: 1px solid var(--border); padding: 2px 7px; border-radius: 4px; color: var(--teal); }
+  .footer-note { width: 100%; max-width: 720px; margin-top: 20px; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; text-align: center; opacity: .6; }
+  .demo-bar { width: 100%; max-width: 720px; background: rgba(245,130,10,.06); border: 1px solid rgba(245,130,10,.2); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 11px; color: var(--orange); font-family: 'DM Mono', monospace; }
+  .demo-bar strong { display: block; margin-bottom: 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+  .demo-phones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .demo-phones button { background: transparent; border: 1px solid rgba(245,130,10,.35); color: var(--orange); border-radius: 6px; padding: 4px 10px; font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer; transition: background .15s; }
+  .demo-phones button:hover { background: rgba(245,130,10,.12); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-dot"></div>
+  <h1>NürnbergMesse &middot; Mock CRM</h1>
+  <div class="header-badge">Widget API Ready</div>
+</div>
+
+<div class="demo-bar">
+  <strong>&#9889; Demo Mode — simulate incoming calls</strong>
+  Click a number to simulate Puzzel routing a call to this widget:
+  <div class="demo-phones">
+    <button onclick="triggerLookup('+49 89 123456','widget')">+49 89 123456 (Gold — Hoffmann)</button>
+    <button onclick="triggerLookup('+81 6 12345678','widget')">+81 6 12345678 (Gold — Tanaka)</button>
+    <button onclick="triggerLookup('+46 8 987654','widget')">+46 8 987654 (Silver — Lindström)</button>
+    <button onclick="triggerLookup('+39 02 456789','widget')">+39 02 456789 (Standard — Ferretti)</button>
+    <button onclick="triggerLookup('+99 00 000000','widget')">Unknown number</button>
+  </div>
+</div>
+
+<div class="search-row">
+  <input type="text" id="searchInput" placeholder="Search by phone, name or company…" />
+  <button onclick="manualSearch()">Look up</button>
+</div>
+
+<div class="status-banner" id="statusBanner">
+  <span id="statusIcon"></span>
+  <span id="statusText"></span>
+</div>
+
+<div class="placeholder" id="placeholder">
+  <div class="ph-icon">&#128222;</div>
+  <p>Waiting for an incoming call or manual search.<br/>
+  In production, Puzzel's Widget API sends <code>callAccepted</code> events via <code>postMessage</code>.<br/>
+  The widget reads the caller's phone number and auto-populates this card.</p>
+</div>
+
+<div class="card" id="card"></div>
+<div class="footer-note" id="footerNote" style="display:none">&#9889; Auto-populated via Puzzel Widget API &middot; callAccepted event &rarr; phone lookup</div>
+
+<script>
+const CUSTOMERS = [
+  {
+    id: "NM-10042",
+    name: "Klaus Hoffmann",
+    company: "Messe Solutions GmbH",
+    phone: "+49 89 123456",
+    email: "k.hoffmann@messe-solutions.de",
+    status: "Gold",
+    segment: "Exhibitor",
+    language: "DE",
+    account_manager: "Sophie Braun",
+    since: "2019",
+    open_orders: 3,
+    last_contact: "2026-05-14",
+    lifetime_value: "142,000",
+    pending_invoice: "8,400",
+    tags: ["VIP", "Multi-event", "Annual contract"],
+    tickets: [
+      { id: "TK-8821", desc: "Booth electricity upgrade request — Hall B", status: "open" },
+      { id: "TK-8756", desc: "Badge order amendment for 12 additional staff", status: "review" }
+    ],
+    notes: "VIP route. Skip FAQ. Route directly to case owner Sophie Braun ext. 204."
+  },
+  {
+    id: "NM-10301",
+    name: "Yuki Tanaka",
+    company: "Osaka Trade Consortium",
+    phone: "+81 6 12345678",
+    email: "y.tanaka@osakaconsortium.jp",
+    status: "Gold",
+    segment: "Exhibitor",
+    language: "JA/EN",
+    account_manager: "Sophie Braun",
+    since: "2017",
+    open_orders: 2,
+    last_contact: "2026-05-20",
+    lifetime_value: "298,000",
+    pending_invoice: "0",
+    tags: ["VIP", "International", "Multi-hall", "Annual contract"],
+    tickets: [
+      { id: "TK-9145", desc: "Custom AGB amendment request — legal review required", status: "open" }
+    ],
+    notes: "A+ customer. VIP express route to case owner. AGB amendment — do NOT send standard FAQ. Escalate immediately to Sophie Braun."
+  },
+  {
+    id: "NM-10089",
+    name: "Annika Lindstrom",
+    company: "Nordic Exhibits AB",
+    phone: "+46 8 987654",
+    email: "a.lindstrom@nordic-exhibits.se",
+    status: "Silver",
+    segment: "Exhibitor",
+    language: "SV/EN",
+    account_manager: "Tomas Reiter",
+    since: "2021",
+    open_orders: 1,
+    last_contact: "2026-04-28",
+    lifetime_value: "64,000",
+    pending_invoice: "0",
+    tags: ["Repeat exhibitor", "Scandinavian pavilion"],
+    tickets: [
+      { id: "TK-9002", desc: "Stand furniture delivery confirmed late", status: "open" }
+    ],
+    notes: "Booked full stand package. Delivery issue in progress. Standard routing applies."
+  },
+  {
+    id: "NM-10217",
+    name: "Marco Ferretti",
+    company: "Ferretti Trade SpA",
+    phone: "+39 02 456789",
+    email: "m.ferretti@ferretti-trade.it",
+    status: "Standard",
+    segment: "Visitor",
+    language: "IT/EN",
+    account_manager: "Anna Klein",
+    since: "2023",
+    open_orders: 0,
+    last_contact: "2026-03-10",
+    lifetime_value: "12,000",
+    pending_invoice: "1,200",
+    tags: ["First-time exhibitor"],
+    tickets: [],
+    notes: "New exhibitor. Standard routing applies."
+  }
+];
+
+function findCustomer(query) {
+  if (!query) return null;
+  const q = query.toLowerCase().replace(/\s/g,'');
+  return CUSTOMERS.find(c =>
+    c.phone.replace(/\s/g,'').includes(q) ||
+    c.name.toLowerCase().replace(/\s/g,'').includes(q.replace(/\s/g,'')) ||
+    c.company.toLowerCase().includes(query.toLowerCase()) ||
+    c.id.toLowerCase() === query.toLowerCase()
+  ) || null;
+}
+
+function renderCard(customer, trigger) {
+  const card = document.getElementById('card');
+  const placeholder = document.getElementById('placeholder');
+  document.getElementById('footerNote').style.display = trigger === 'widget' ? 'block' : 'none';
+  placeholder.style.display = 'none';
+
+  const initials = customer.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+  const statusClass = customer.status === 'Gold' ? 'gold' : customer.status === 'Silver' ? 'silver' : 'standard';
+  const statusIcon  = customer.status === 'Gold' ? '&#9733;' : customer.status === 'Silver' ? '&#9671;' : '&#9675;';
+  const orderColor  = customer.open_orders > 0 ? 'accent' : 'green';
+  const invColor    = customer.pending_invoice !== '0' ? 'accent' : 'green';
+  const invDisplay  = customer.pending_invoice !== '0' ? '&euro;' + customer.pending_invoice : 'None';
+
+  const ticketsHtml = customer.tickets.length === 0
+    ? '<p style="font-size:11px;color:var(--muted)">No open tickets</p>'
+    : customer.tickets.map(t =>
+        '<div class="ticket-item"><div class="t-id">' + t.id + '</div><div class="t-desc">' + t.desc + '</div><div class="t-status ' + t.status + '">' + (t.status === 'open' ? '&#9679; Open' : '&#9680; In review') + '</div></div>'
+      ).join('');
+
+  const tagsHtml = customer.tags.map((tag,i) => {
+    const cls = i === 0 && customer.status !== 'Standard' ? 'orange' : i % 2 === 0 ? 'blue' : 'muted';
+    return '<span class="tag ' + cls + '">' + tag + '</span>';
+  }).join('');
+
+  card.innerHTML =
+    '<div class="card-hero">' +
+      '<div class="avatar">' + initials + '</div>' +
+      '<div class="hero-info">' +
+        '<div class="name">' + customer.name + '</div>' +
+        '<div class="company">' + customer.company + '</div>' +
+        '<div class="phone">' + customer.phone + '</div>' +
+      '</div>' +
+      '<div class="vip-badge ' + statusClass + '">' + statusIcon + ' ' + customer.status + '</div>' +
+    '</div>' +
+    '<div class="card-body">' +
+      '<div class="section">' +
+        '<div class="section-label">Contact Details</div>' +
+        '<div class="kv-list">' +
+          '<div class="kv"><span class="kv-key">ID</span><span class="kv-val">' + customer.id + '</span></div>' +
+          '<div class="kv"><span class="kv-key">Email</span><span class="kv-val" style="font-size:11px">' + customer.email + '</span></div>' +
+          '<div class="kv"><span class="kv-key">Language</span><span class="kv-val">' + customer.language + '</span></div>' +
+          '<div class="kv"><span class="kv-key">Segment</span><span class="kv-val">' + customer.segment + '</span></div>' +
+          '<div class="kv"><span class="kv-key">Customer since</span><span class="kv-val">' + customer.since + '</span></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="section">' +
+        '<div class="section-label">Account</div>' +
+        '<div class="kv-list">' +
+          '<div class="kv"><span class="kv-key">Account Manager</span><span class="kv-val">' + customer.account_manager + '</span></div>' +
+          '<div class="kv"><span class="kv-key">Lifetime Value</span><span class="kv-val green">&euro;' + customer.lifetime_value + '</span></div>' +
+          '<div class="kv"><span class="kv-key">Open Orders</span><span class="kv-val ' + orderColor + '">' + customer.open_orders + '</span></div>' +
+          '<div class="kv"><span class="kv-key">Pending Invoice</span><span class="kv-val ' + invColor + '">' + invDisplay + '</span></div>' +
+          '<div class="kv"><span class="kv-key">Last Contact</span><span class="kv-val">' + customer.last_contact + '</span></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="section" style="grid-column:1/-1">' +
+        '<div class="section-label">Tags</div>' +
+        '<div class="tags">' + tagsHtml + '</div>' +
+      '</div>' +
+      '<div class="section" style="grid-column:1/-1">' +
+        '<div class="section-label">Open Tickets</div>' +
+        '<div class="ticket-list">' + ticketsHtml + '</div>' +
+      '</div>' +
+      '<div class="section" style="grid-column:1/-1;background:rgba(245,130,10,.04);border-top:1px solid rgba(245,130,10,.15)">' +
+        '<div class="section-label" style="color:var(--orange)">&#9889; Agent Routing Note</div>' +
+        '<p style="font-size:12px;line-height:1.6;color:var(--white)">' + customer.notes + '</p>' +
+      '</div>' +
+    '</div>';
+
+  card.classList.add('visible');
+}
+
+function showStatus(type, text) {
+  const b = document.getElementById('statusBanner');
+  document.getElementById('statusIcon').textContent = type === 'incoming' ? '📲' : '❌';
+  document.getElementById('statusText').textContent  = text;
+  b.className = 'status-banner show ' + type;
+}
+
+function clearStatus() {
+  document.getElementById('statusBanner').className = 'status-banner';
+}
+
+function manualSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  const c = findCustomer(q);
+  if (c) { clearStatus(); renderCard(c, 'manual'); }
+  else {
+    showStatus('notfound', 'No customer found matching "' + q + '"');
+    document.getElementById('card').classList.remove('visible');
+    document.getElementById('placeholder').style.display = 'block';
+  }
+}
+
+document.getElementById('searchInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') manualSearch();
+});
+
+function triggerLookup(phone, trigger) {
+  const c = findCustomer(phone);
+  if (c) {
+    showStatus('incoming', 'Incoming call from ' + phone + ' — customer identified');
+    renderCard(c, trigger);
+  } else {
+    showStatus('notfound', 'Incoming call from ' + phone + ' — no CRM record found');
+    document.getElementById('placeholder').style.display = 'block';
+    document.getElementById('card').classList.remove('visible');
+  }
+}
+
+// Puzzel Widget API postMessage listener
+var puzPort = null;
+window.addEventListener('message', function(event) {
+  if (event.ports && event.ports.length > 0 && !puzPort) {
+    puzPort = event.ports[0];
+    puzPort.onmessage = function(message) {
+      var data = message.data;
+      if (!data) return;
+      if (data.type === 'event' && (data.name === 'callAccepted' || data.name === 'requestAccepted')) {
+        var phone = (data.value && (data.value.phoneNumber || data.value.callerNumber || data.value.ani)) || '';
+        if (phone) triggerLookup(phone, 'widget');
+      }
+      if (data.type === 'result' && data.name === 'call.getState') {
+        var phone = (data.value && (data.value.phoneNumber || data.value.callerNumber)) || '';
+        if (phone) triggerLookup(phone, 'widget');
+      }
+      if (data.type === 'event' && data.name === 'callEnded') {
+        document.getElementById('card').classList.remove('visible');
+        document.getElementById('placeholder').style.display = 'block';
+        document.getElementById('footerNote').style.display = 'none';
+        clearStatus();
+      }
+    };
+    puzPort.postMessage({ subscribe: 'callAccepted' });
+    puzPort.postMessage({ subscribe: 'callEnded' });
+    puzPort.postMessage({ call: 'call.getState', args: [] });
+  }
+});
+</script>
+</body>
+</html>
