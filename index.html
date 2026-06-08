@@ -47,7 +47,7 @@
   .card { width: 100%; max-width: 720px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity .35s ease, transform .35s ease; }
   .card.visible { opacity: 1; transform: translateY(0); }
   .card-hero { padding: 28px 28px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 20px; position: relative; }
-  .avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), #0a7ebd); color: var(--navy); letter-spacing: -.02em; }
+  .avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), #0a7ebd); color: var(--navy); }
   .hero-info { flex: 1; }
   .hero-info .name { font-size: 22px; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; }
   .hero-info .company { font-size: 13px; color: var(--muted); margin-top: 4px; }
@@ -66,7 +66,6 @@
   .kv-val { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--white); text-align: right; }
   .kv-val.accent { color: var(--orange); }
   .kv-val.green  { color: var(--green); }
-  .kv-val.red    { color: var(--red); }
   .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
   .tag { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; padding: 3px 9px; border-radius: 5px; }
   .tag.blue   { background:rgba(15,198,198,.12); color:var(--teal); border:1px solid rgba(15,198,198,.2); }
@@ -96,18 +95,19 @@
 <div class="header">
   <div class="header-dot"></div>
   <h1>NürnbergMesse &middot; Mock CRM</h1>
-  <div class="header-badge">Widget API Ready</div>
+  <div class="header-badge" id="apiStatus">Waiting for Puzzel...</div>
 </div>
 
 <div class="demo-bar">
   <strong>&#9889; Demo Mode — simulate incoming calls</strong>
   Click a number to simulate Puzzel routing a call to this widget:
   <div class="demo-phones">
-    <button onclick="triggerLookup('+49 89 123456','widget')">+49 89 123456 (Gold — Hoffmann)</button>
-    <button onclick="triggerLookup('+81 6 12345678','widget')">+81 6 12345678 (Gold — Tanaka)</button>
-    <button onclick="triggerLookup('+46 8 987654','widget')">+46 8 987654 (Silver — Lindström)</button>
-    <button onclick="triggerLookup('+39 02 456789','widget')">+39 02 456789 (Standard — Ferretti)</button>
-    <button onclick="triggerLookup('+99 00 000000','widget')">Unknown number</button>
+    <button onclick="triggerLookup('+46765558764','widget')">+46 765 558 764 (Gold — Rayhan)</button>
+    <button onclick="triggerLookup('+4989123456','widget')">+49 89 123456 (Gold — Hoffmann)</button>
+    <button onclick="triggerLookup('+81612345678','widget')">+81 6 12345678 (Gold — Tanaka)</button>
+    <button onclick="triggerLookup('+468987654','widget')">+46 8 987654 (Silver — Lindström)</button>
+    <button onclick="triggerLookup('+3902456789','widget')">+39 02 456789 (Standard — Ferretti)</button>
+    <button onclick="triggerLookup('+9900000000','widget')">Unknown number</button>
   </div>
 </div>
 
@@ -123,251 +123,282 @@
 
 <div class="placeholder" id="placeholder">
   <div class="ph-icon">&#128222;</div>
-  <p>Waiting for an incoming call or manual search.<br/>
-  In production, Puzzel's Widget API sends <code>callAccepted</code> events via <code>postMessage</code>.<br/>
-  The widget reads the caller's phone number and auto-populates this card.</p>
+  <p>Waiting for an incoming call.<br/>
+  Puzzel will send the caller's number automatically via the Widget API.<br/>
+  Use the demo buttons above to test the lookup manually.</p>
 </div>
 
 <div class="card" id="card"></div>
-<div class="footer-note" id="footerNote" style="display:none">&#9889; Auto-populated via Puzzel Widget API &middot; callAccepted event &rarr; phone lookup</div>
+<div class="footer-note" id="footerNote" style="display:none">&#9889; Auto-populated via Puzzel Widget API &middot; callAccepted &rarr; phone lookup</div>
 
 <script>
-const CUSTOMERS = [
+// ── Customer database ────────────────────────────────────────────────────────
+var CUSTOMERS = [
   {
-    id: "NM-10042",
-    name: "Klaus Hoffmann",
-    company: "Messe Solutions GmbH",
-    phone: "+49 89 123456",
-    email: "k.hoffmann@messe-solutions.de",
-    status: "Gold",
-    segment: "Exhibitor",
-    language: "DE",
-    account_manager: "Sophie Braun",
-    since: "2019",
-    open_orders: 3,
-    last_contact: "2026-05-14",
-    lifetime_value: "142,000",
-    pending_invoice: "8,400",
+    id: "NM-10042", name: "Klaus Hoffmann", company: "Messe Solutions GmbH",
+    phone: "+4989123456", email: "k.hoffmann@messe-solutions.de",
+    status: "Gold", segment: "Exhibitor", language: "DE",
+    account_manager: "Sophie Braun", since: "2019", open_orders: 3,
+    last_contact: "2026-05-14", lifetime_value: "142,000", pending_invoice: "8,400",
     tags: ["VIP", "Multi-event", "Annual contract"],
     tickets: [
-      { id: "TK-8821", desc: "Booth electricity upgrade request — Hall B", status: "open" },
-      { id: "TK-8756", desc: "Badge order amendment for 12 additional staff", status: "review" }
+      { id: "TK-8821", desc: "Booth electricity upgrade — Hall B", status: "open" },
+      { id: "TK-8756", desc: "Badge order amendment for 12 staff", status: "review" }
     ],
     notes: "VIP route. Skip FAQ. Route directly to case owner Sophie Braun ext. 204."
   },
   {
-    id: "NM-10301",
-    name: "Yuki Tanaka",
-    company: "Osaka Trade Consortium",
-    phone: "+81 6 12345678",
-    email: "y.tanaka@osakaconsortium.jp",
-    status: "Gold",
-    segment: "Exhibitor",
-    language: "JA/EN",
-    account_manager: "Sophie Braun",
-    since: "2017",
-    open_orders: 2,
-    last_contact: "2026-05-20",
-    lifetime_value: "298,000",
-    pending_invoice: "0",
+    id: "NM-10301", name: "Yuki Tanaka", company: "Osaka Trade Consortium",
+    phone: "+81612345678", email: "y.tanaka@osakaconsortium.jp",
+    status: "Gold", segment: "Exhibitor", language: "JA/EN",
+    account_manager: "Sophie Braun", since: "2017", open_orders: 2,
+    last_contact: "2026-05-20", lifetime_value: "298,000", pending_invoice: "0",
     tags: ["VIP", "International", "Multi-hall", "Annual contract"],
     tickets: [
       { id: "TK-9145", desc: "Custom AGB amendment request — legal review required", status: "open" }
     ],
-    notes: "A+ customer. VIP express route to case owner. AGB amendment — do NOT send standard FAQ. Escalate immediately to Sophie Braun."
+    notes: "A+ customer. VIP express route. AGB amendment — do NOT send standard FAQ. Escalate immediately to Sophie Braun."
   },
   {
-    id: "NM-10089",
-    name: "Annika Lindstrom",
-    company: "Nordic Exhibits AB",
-    phone: "+46 8 987654",
-    email: "a.lindstrom@nordic-exhibits.se",
-    status: "Silver",
-    segment: "Exhibitor",
-    language: "SV/EN",
-    account_manager: "Tomas Reiter",
-    since: "2021",
-    open_orders: 1,
-    last_contact: "2026-04-28",
-    lifetime_value: "64,000",
-    pending_invoice: "0",
+    id: "NM-10089", name: "Annika Lindstrom", company: "Nordic Exhibits AB",
+    phone: "+468987654", email: "a.lindstrom@nordic-exhibits.se",
+    status: "Silver", segment: "Exhibitor", language: "SV/EN",
+    account_manager: "Tomas Reiter", since: "2021", open_orders: 1,
+    last_contact: "2026-04-28", lifetime_value: "64,000", pending_invoice: "0",
     tags: ["Repeat exhibitor", "Scandinavian pavilion"],
-    tickets: [
-      { id: "TK-9002", desc: "Stand furniture delivery confirmed late", status: "open" }
-    ],
-    notes: "Booked full stand package. Delivery issue in progress. Standard routing applies."
+    tickets: [{ id: "TK-9002", desc: "Stand furniture delivery confirmed late", status: "open" }],
+    notes: "Booked full stand package. Delivery issue in progress. Standard routing."
   },
   {
-    id: "NM-10217",
-    name: "Marco Ferretti",
-    company: "Ferretti Trade SpA",
-    phone: "+39 02 456789",
-    email: "m.ferretti@ferretti-trade.it",
-    status: "Standard",
-    segment: "Visitor",
-    language: "IT/EN",
-    account_manager: "Anna Klein",
-    since: "2023",
-    open_orders: 0,
-    last_contact: "2026-03-10",
-    lifetime_value: "12,000",
-    pending_invoice: "1,200",
+    id: "NM-10005", name: "Rayhan", company: "NürnbergMesse",
+    phone: "+46765558764", email: "rayhan@nuernbergmesse.de",
+    status: "Gold", segment: "Exhibitor", language: "SV/EN",
+    account_manager: "Sophie Braun", since: "2018", open_orders: 4,
+    last_contact: "2026-06-07", lifetime_value: "385,000", pending_invoice: "0",
+    tags: ["VIP", "Key Account", "Multi-event", "Annual contract"],
+    tickets: [
+      { id: "TK-9201", desc: "Priority booth allocation — Hall A1 confirmed", status: "review" }
+    ],
+    notes: "A+ customer. VIP express route. Skip FAQ. Route directly to case owner Sophie Braun ext. 204. Do not place in standard queue under any circumstances."
+  },
+  {
+    id: "NM-10217", name: "Marco Ferretti", company: "Ferretti Trade SpA",
+    phone: "+3902456789", email: "m.ferretti@ferretti-trade.it",
+    status: "Standard", segment: "Visitor", language: "IT/EN",
+    account_manager: "Anna Klein", since: "2023", open_orders: 0,
+    last_contact: "2026-03-10", lifetime_value: "12,000", pending_invoice: "1,200",
     tags: ["First-time exhibitor"],
     tickets: [],
     notes: "New exhibitor. Standard routing applies."
   }
 ];
 
-function findCustomer(query) {
-  if (!query) return null;
-  const q = query.toLowerCase().replace(/\s/g,'');
-  return CUSTOMERS.find(c =>
-    c.phone.replace(/\s/g,'').includes(q) ||
-    c.name.toLowerCase().replace(/\s/g,'').includes(q.replace(/\s/g,'')) ||
-    c.company.toLowerCase().includes(query.toLowerCase()) ||
-    c.id.toLowerCase() === query.toLowerCase()
-  ) || null;
+// Normalise phone: strip everything except digits and leading +
+function normalisePhone(p) {
+  return (p || '').replace(/[\s\-().]/g, '');
 }
 
+function findCustomer(query) {
+  if (!query) return null;
+  var q = normalisePhone(query).toLowerCase();
+  var qRaw = query.toLowerCase().trim();
+  return CUSTOMERS.find(function(c) {
+    // phone match (normalised, also try without leading +)
+    var cp = normalisePhone(c.phone).toLowerCase();
+    if (cp === q || cp === q.replace(/^\+/,'') || q === cp.replace(/^\+/,'')) return true;
+    // partial phone match (last 8+ digits)
+    if (q.length >= 8 && cp.endsWith(q.replace(/^\+/,''))) return true;
+    // name / company match
+    if (c.name.toLowerCase().includes(qRaw)) return true;
+    if (c.company.toLowerCase().includes(qRaw)) return true;
+    if (c.id.toLowerCase() === qRaw) return true;
+    return false;
+  }) || null;
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
 function renderCard(customer, trigger) {
-  const card = document.getElementById('card');
-  const placeholder = document.getElementById('placeholder');
+  var card = document.getElementById('card');
+  document.getElementById('placeholder').style.display = 'none';
   document.getElementById('footerNote').style.display = trigger === 'widget' ? 'block' : 'none';
-  placeholder.style.display = 'none';
 
-  const initials = customer.name.split(' ').map(w=>w[0]).join('').slice(0,2);
-  const statusClass = customer.status === 'Gold' ? 'gold' : customer.status === 'Silver' ? 'silver' : 'standard';
-  const statusIcon  = customer.status === 'Gold' ? '&#9733;' : customer.status === 'Silver' ? '&#9671;' : '&#9675;';
-  const orderColor  = customer.open_orders > 0 ? 'accent' : 'green';
-  const invColor    = customer.pending_invoice !== '0' ? 'accent' : 'green';
-  const invDisplay  = customer.pending_invoice !== '0' ? '&euro;' + customer.pending_invoice : 'None';
+  var initials = customer.name.split(' ').map(function(w){return w[0];}).join('').slice(0,2);
+  var sc = customer.status === 'Gold' ? 'gold' : customer.status === 'Silver' ? 'silver' : 'standard';
+  var si = customer.status === 'Gold' ? '&#9733;' : customer.status === 'Silver' ? '&#9671;' : '&#9675;';
+  var oc = customer.open_orders > 0 ? 'accent' : 'green';
+  var ic = customer.pending_invoice !== '0' ? 'accent' : 'green';
+  var id = customer.pending_invoice !== '0' ? '&euro;'+customer.pending_invoice : 'None';
 
-  const ticketsHtml = customer.tickets.length === 0
+  var ticketsHtml = customer.tickets.length === 0
     ? '<p style="font-size:11px;color:var(--muted)">No open tickets</p>'
-    : customer.tickets.map(t =>
-        '<div class="ticket-item"><div class="t-id">' + t.id + '</div><div class="t-desc">' + t.desc + '</div><div class="t-status ' + t.status + '">' + (t.status === 'open' ? '&#9679; Open' : '&#9680; In review') + '</div></div>'
-      ).join('');
+    : customer.tickets.map(function(t) {
+        return '<div class="ticket-item"><div class="t-id">'+t.id+'</div><div class="t-desc">'+t.desc+'</div><div class="t-status '+t.status+'">'+(t.status==='open'?'&#9679; Open':'&#9680; In review')+'</div></div>';
+      }).join('');
 
-  const tagsHtml = customer.tags.map((tag,i) => {
-    const cls = i === 0 && customer.status !== 'Standard' ? 'orange' : i % 2 === 0 ? 'blue' : 'muted';
-    return '<span class="tag ' + cls + '">' + tag + '</span>';
+  var tagsHtml = customer.tags.map(function(tag,i) {
+    var cls = i===0 && customer.status!=='Standard' ? 'orange' : i%2===0 ? 'blue' : 'muted';
+    return '<span class="tag '+cls+'">'+tag+'</span>';
   }).join('');
 
   card.innerHTML =
-    '<div class="card-hero">' +
-      '<div class="avatar">' + initials + '</div>' +
-      '<div class="hero-info">' +
-        '<div class="name">' + customer.name + '</div>' +
-        '<div class="company">' + customer.company + '</div>' +
-        '<div class="phone">' + customer.phone + '</div>' +
-      '</div>' +
-      '<div class="vip-badge ' + statusClass + '">' + statusIcon + ' ' + customer.status + '</div>' +
-    '</div>' +
-    '<div class="card-body">' +
-      '<div class="section">' +
-        '<div class="section-label">Contact Details</div>' +
-        '<div class="kv-list">' +
-          '<div class="kv"><span class="kv-key">ID</span><span class="kv-val">' + customer.id + '</span></div>' +
-          '<div class="kv"><span class="kv-key">Email</span><span class="kv-val" style="font-size:11px">' + customer.email + '</span></div>' +
-          '<div class="kv"><span class="kv-key">Language</span><span class="kv-val">' + customer.language + '</span></div>' +
-          '<div class="kv"><span class="kv-key">Segment</span><span class="kv-val">' + customer.segment + '</span></div>' +
-          '<div class="kv"><span class="kv-key">Customer since</span><span class="kv-val">' + customer.since + '</span></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="section">' +
-        '<div class="section-label">Account</div>' +
-        '<div class="kv-list">' +
-          '<div class="kv"><span class="kv-key">Account Manager</span><span class="kv-val">' + customer.account_manager + '</span></div>' +
-          '<div class="kv"><span class="kv-key">Lifetime Value</span><span class="kv-val green">&euro;' + customer.lifetime_value + '</span></div>' +
-          '<div class="kv"><span class="kv-key">Open Orders</span><span class="kv-val ' + orderColor + '">' + customer.open_orders + '</span></div>' +
-          '<div class="kv"><span class="kv-key">Pending Invoice</span><span class="kv-val ' + invColor + '">' + invDisplay + '</span></div>' +
-          '<div class="kv"><span class="kv-key">Last Contact</span><span class="kv-val">' + customer.last_contact + '</span></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="section" style="grid-column:1/-1">' +
-        '<div class="section-label">Tags</div>' +
-        '<div class="tags">' + tagsHtml + '</div>' +
-      '</div>' +
-      '<div class="section" style="grid-column:1/-1">' +
-        '<div class="section-label">Open Tickets</div>' +
-        '<div class="ticket-list">' + ticketsHtml + '</div>' +
-      '</div>' +
-      '<div class="section" style="grid-column:1/-1;background:rgba(245,130,10,.04);border-top:1px solid rgba(245,130,10,.15)">' +
-        '<div class="section-label" style="color:var(--orange)">&#9889; Agent Routing Note</div>' +
-        '<p style="font-size:12px;line-height:1.6;color:var(--white)">' + customer.notes + '</p>' +
-      '</div>' +
+    '<div class="card-hero">'+
+      '<div class="avatar">'+initials+'</div>'+
+      '<div class="hero-info">'+
+        '<div class="name">'+customer.name+'</div>'+
+        '<div class="company">'+customer.company+'</div>'+
+        '<div class="phone">'+customer.phone+'</div>'+
+      '</div>'+
+      '<div class="vip-badge '+sc+'">'+si+' '+customer.status+'</div>'+
+    '</div>'+
+    '<div class="card-body">'+
+      '<div class="section">'+
+        '<div class="section-label">Contact Details</div>'+
+        '<div class="kv-list">'+
+          '<div class="kv"><span class="kv-key">ID</span><span class="kv-val">'+customer.id+'</span></div>'+
+          '<div class="kv"><span class="kv-key">Email</span><span class="kv-val" style="font-size:11px">'+customer.email+'</span></div>'+
+          '<div class="kv"><span class="kv-key">Language</span><span class="kv-val">'+customer.language+'</span></div>'+
+          '<div class="kv"><span class="kv-key">Segment</span><span class="kv-val">'+customer.segment+'</span></div>'+
+          '<div class="kv"><span class="kv-key">Since</span><span class="kv-val">'+customer.since+'</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="section">'+
+        '<div class="section-label">Account</div>'+
+        '<div class="kv-list">'+
+          '<div class="kv"><span class="kv-key">Account Manager</span><span class="kv-val">'+customer.account_manager+'</span></div>'+
+          '<div class="kv"><span class="kv-key">Lifetime Value</span><span class="kv-val green">&euro;'+customer.lifetime_value+'</span></div>'+
+          '<div class="kv"><span class="kv-key">Open Orders</span><span class="kv-val '+oc+'">'+customer.open_orders+'</span></div>'+
+          '<div class="kv"><span class="kv-key">Pending Invoice</span><span class="kv-val '+ic+'">'+id+'</span></div>'+
+          '<div class="kv"><span class="kv-key">Last Contact</span><span class="kv-val">'+customer.last_contact+'</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="section" style="grid-column:1/-1"><div class="section-label">Tags</div><div class="tags">'+tagsHtml+'</div></div>'+
+      '<div class="section" style="grid-column:1/-1"><div class="section-label">Open Tickets</div><div class="ticket-list">'+ticketsHtml+'</div></div>'+
+      '<div class="section" style="grid-column:1/-1;background:rgba(245,130,10,.04);border-top:1px solid rgba(245,130,10,.15)">'+
+        '<div class="section-label" style="color:var(--orange)">&#9889; Agent Routing Note</div>'+
+        '<p style="font-size:12px;line-height:1.6;color:var(--white)">'+customer.notes+'</p>'+
+      '</div>'+
     '</div>';
 
   card.classList.add('visible');
 }
 
 function showStatus(type, text) {
-  const b = document.getElementById('statusBanner');
+  var b = document.getElementById('statusBanner');
   document.getElementById('statusIcon').textContent = type === 'incoming' ? '📲' : '❌';
-  document.getElementById('statusText').textContent  = text;
+  document.getElementById('statusText').textContent = text;
   b.className = 'status-banner show ' + type;
 }
+function clearStatus() { document.getElementById('statusBanner').className = 'status-banner'; }
 
-function clearStatus() {
-  document.getElementById('statusBanner').className = 'status-banner';
+function triggerLookup(phone, trigger) {
+  var c = findCustomer(phone);
+  if (c) {
+    showStatus('incoming', 'Incoming call from '+phone+' — customer identified');
+    renderCard(c, trigger);
+  } else {
+    showStatus('notfound', 'Incoming call from '+phone+' — no CRM record found');
+    document.getElementById('card').classList.remove('visible');
+    document.getElementById('placeholder').style.display = 'block';
+  }
 }
 
 function manualSearch() {
-  const q = document.getElementById('searchInput').value.trim();
+  var q = document.getElementById('searchInput').value.trim();
   if (!q) return;
-  const c = findCustomer(q);
+  var c = findCustomer(q);
   if (c) { clearStatus(); renderCard(c, 'manual'); }
   else {
-    showStatus('notfound', 'No customer found matching "' + q + '"');
+    showStatus('notfound', 'No customer found matching "'+q+'"');
     document.getElementById('card').classList.remove('visible');
     document.getElementById('placeholder').style.display = 'block';
   }
 }
+document.getElementById('searchInput').addEventListener('keydown', function(e){ if(e.key==='Enter') manualSearch(); });
 
-document.getElementById('searchInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') manualSearch();
-});
-
-function triggerLookup(phone, trigger) {
-  const c = findCustomer(phone);
-  if (c) {
-    showStatus('incoming', 'Incoming call from ' + phone + ' — customer identified');
-    renderCard(c, trigger);
-  } else {
-    showStatus('notfound', 'Incoming call from ' + phone + ' — no CRM record found');
-    document.getElementById('placeholder').style.display = 'block';
-    document.getElementById('card').classList.remove('visible');
+// ── URL parameter lookup (fallback / alternative pop method) ─────────────────
+// Puzzel can be configured to append ?phone=<ANI> to the widget URL.
+// This fires immediately on page load — no postMessage needed.
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var phone = params.get('phone') || params.get('ani') || params.get('callerNumber') || params.get('phoneNumber');
+  if (phone) {
+    // Small delay so the page is visually ready
+    setTimeout(function() { triggerLookup(phone, 'widget'); }, 300);
   }
-}
+})();
 
-// Puzzel Widget API postMessage listener
+// ── Puzzel Widget API — postMessage listener ──────────────────────────────────
+// How this works:
+//   1. Puzzel's Agent Application loads this page in an iframe.
+//   2. On load, it opens a MessageChannel and sends port1 to the widget via postMessage.
+//   3. We store that port, then subscribe to callAccepted / callEnded events.
+//   4. When a call comes in, we read the phone number from the event payload and look it up.
+//
+// Required in Puzzel Admin → Widget Administration:
+//   - Handshake: ENABLED  (tells Puzzel the widget is ready)
+//   - The widget subscribes to events only after receiving the port.
+
 var puzPort = null;
+
 window.addEventListener('message', function(event) {
+  // Puzzel sends the port as part of the initial handshake message
   if (event.ports && event.ports.length > 0 && !puzPort) {
     puzPort = event.ports[0];
-    puzPort.onmessage = function(message) {
-      var data = message.data;
-      if (!data) return;
-      if (data.type === 'event' && (data.name === 'callAccepted' || data.name === 'requestAccepted')) {
-        var phone = (data.value && (data.value.phoneNumber || data.value.callerNumber || data.value.ani)) || '';
-        if (phone) triggerLookup(phone, 'widget');
-      }
-      if (data.type === 'result' && data.name === 'call.getState') {
-        var phone = (data.value && (data.value.phoneNumber || data.value.callerNumber)) || '';
-        if (phone) triggerLookup(phone, 'widget');
-      }
-      if (data.type === 'event' && data.name === 'callEnded') {
-        document.getElementById('card').classList.remove('visible');
-        document.getElementById('placeholder').style.display = 'block';
-        document.getElementById('footerNote').style.display = 'none';
-        clearStatus();
-      }
-    };
+    puzPort.onmessage = handleWidgetMessage;
+
+    // Subscribe to relevant call events
     puzPort.postMessage({ subscribe: 'callAccepted' });
+    puzPort.postMessage({ subscribe: 'requestAccepted' });
     puzPort.postMessage({ subscribe: 'callEnded' });
-    puzPort.postMessage({ call: 'call.getState', args: [] });
+    puzPort.postMessage({ subscribe: 'requestEnded' });
+
+    // Request current call state (handles widget loading mid-call)
+    puzPort.postMessage({ call: 'call.getState', args: [], id: 'init-state' });
+
+    // Signal handshake complete back to Puzzel
+    puzPort.postMessage({ call: 'widget.setOption', args: ['handshake', true] });
+
+    document.getElementById('apiStatus').textContent = 'Widget API Connected';
+    document.getElementById('apiStatus').style.color = 'var(--green)';
+    document.getElementById('apiStatus').style.borderColor = 'rgba(18,224,138,.3)';
+    console.log('[Puzzel Widget API] Port connected. Subscribed to call events.');
   }
 });
+
+function handleWidgetMessage(message) {
+  var data = message.data;
+  if (!data) return;
+
+  console.log('[Puzzel Widget API] Message received:', JSON.stringify(data));
+
+  // Incoming call event — multiple possible event names depending on Puzzel version
+  if (data.type === 'event') {
+    var name = data.name || '';
+    var val  = data.value || {};
+
+    if (name === 'callAccepted' || name === 'requestAccepted' ||
+        name === 'newCall'      || name === 'callConnected') {
+      // Phone number may be in different fields depending on channel/version
+      var phone = val.phoneNumber || val.callerNumber || val.ani ||
+                  val.from        || val.caller        || val.msisdn || '';
+      if (phone) triggerLookup(phone, 'widget');
+    }
+
+    if (name === 'callEnded' || name === 'requestEnded' || name === 'callDisconnected') {
+      document.getElementById('card').classList.remove('visible');
+      document.getElementById('placeholder').style.display = 'block';
+      document.getElementById('footerNote').style.display  = 'none';
+      clearStatus();
+    }
+  }
+
+  // Result from call.getState (mid-call load)
+  if (data.type === 'result' && (data.name === 'call.getState' || data.id === 'init-state')) {
+    var val = data.value || {};
+    var phone = val.phoneNumber || val.callerNumber || val.ani || val.from || '';
+    if (phone) triggerLookup(phone, 'widget');
+  }
+}
 </script>
 </body>
 </html>
