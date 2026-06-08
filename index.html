@@ -193,9 +193,14 @@ var CUSTOMERS = [
   }
 ];
 
-// Normalise phone: strip everything except digits and leading +
+// Normalise phone: strip formatting, then expand local Swedish 0x format to +46x
 function normalisePhone(p) {
-  return (p || '').replace(/[\s\-().]/g, '');
+  var n = (p || '').replace(/[\s\-().]/g, '');
+  // If starts with 0 (local Swedish format e.g. 0765558764) convert to +46765558764
+  if (n.match(/^0\d+$/)) {
+    n = '+46' + n.slice(1);
+  }
+  return n;
 }
 
 function findCustomer(query) {
