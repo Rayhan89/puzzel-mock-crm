@@ -20,73 +20,104 @@
     --green:  #12e08a;
     --red:    #ff4f6a;
   }
+  /* ── Base ── */
   html, body { height: 100%; background: var(--navy); font-family: 'Syne', sans-serif; color: var(--white); }
   body {
     display: flex; flex-direction: column; align-items: center;
-    padding: 32px 16px 48px; min-height: 100vh;
+    padding: clamp(12px, 3vw, 32px) clamp(8px, 2vw, 16px) 48px;
+    min-height: 100vh;
     background:
       radial-gradient(ellipse 60% 40% at 80% 10%, rgba(15,198,198,0.07) 0%, transparent 60%),
       radial-gradient(ellipse 50% 50% at 10% 90%, rgba(245,130,10,0.06) 0%, transparent 60%),
       var(--navy);
   }
-  .header { width: 100%; max-width: 720px; display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
-  .header-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 12px var(--teal); animation: pulse 2s ease-in-out infinite; }
+
+  /* ── Header ── */
+  .header { width: 100%; max-width: 720px; display: flex; align-items: center; gap: 10px; margin-bottom: clamp(16px, 3vw, 32px); flex-wrap: wrap; }
+  .header-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 12px var(--teal); animation: pulse 2s ease-in-out infinite; flex-shrink: 0; }
   @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(.8); } }
-  .header h1 { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-  .header-badge { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--teal); background: rgba(15,198,198,.1); border: 1px solid rgba(15,198,198,.25); padding: 3px 10px; border-radius: 20px; }
-  .search-row { width: 100%; max-width: 720px; display: flex; gap: 10px; margin-bottom: 24px; }
-  .search-row input { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-family: 'DM Mono', monospace; font-size: 14px; color: var(--white); outline: none; transition: border-color .2s; }
+  .header h1 { font-size: clamp(10px, 2vw, 13px); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .header-badge { margin-left: auto; font-family: 'DM Mono', monospace; font-size: clamp(9px, 1.5vw, 10px); letter-spacing: .08em; color: var(--teal); background: rgba(15,198,198,.1); border: 1px solid rgba(15,198,198,.25); padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+
+  /* ── Search ── */
+  .search-row { width: 100%; max-width: 720px; display: flex; gap: 8px; margin-bottom: 20px; }
+  .search-row input { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: clamp(8px, 2vw, 12px) clamp(10px, 2vw, 16px); font-family: 'DM Mono', monospace; font-size: clamp(12px, 2.5vw, 14px); color: var(--white); outline: none; transition: border-color .2s; }
   .search-row input::placeholder { color: var(--muted); }
   .search-row input:focus { border-color: var(--teal); }
-  .search-row button { background: var(--teal); color: var(--navy); border: none; border-radius: 10px; padding: 12px 20px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: opacity .15s; white-space: nowrap; }
+  .search-row button { background: var(--teal); color: var(--navy); border: none; border-radius: 10px; padding: clamp(8px, 2vw, 12px) clamp(12px, 2vw, 20px); font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(11px, 2vw, 13px); cursor: pointer; transition: opacity .15s; white-space: nowrap; flex-shrink: 0; }
   .search-row button:hover { opacity: .85; }
-  .status-banner { width: 100%; max-width: 720px; border-radius: 10px; padding: 10px 16px; font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: .05em; margin-bottom: 20px; display: none; align-items: center; gap: 8px; }
+
+  /* ── Status banner ── */
+  .status-banner { width: 100%; max-width: 720px; border-radius: 10px; padding: 10px 14px; font-size: clamp(11px, 2vw, 12px); font-family: 'DM Mono', monospace; letter-spacing: .04em; margin-bottom: 16px; display: none; align-items: center; gap: 8px; }
   .status-banner.show { display: flex; }
   .status-banner.incoming { background: rgba(15,198,198,.1); border: 1px solid rgba(15,198,198,.3); color: var(--teal); }
   .status-banner.notfound { background: rgba(255,79,106,.08); border: 1px solid rgba(255,79,106,.25); color: var(--red); }
+
+  /* ── Card ── */
   .card { width: 100%; max-width: 720px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity .35s ease, transform .35s ease; }
   .card.visible { opacity: 1; transform: translateY(0); }
-  .card-hero { padding: 28px 28px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 20px; position: relative; }
-  .avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), #0a7ebd); color: var(--navy); }
-  .hero-info { flex: 1; }
-  .hero-info .name { font-size: 22px; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; }
-  .hero-info .company { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  .hero-info .phone { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--teal); margin-top: 6px; }
-  .vip-badge { position: absolute; top: 20px; right: 24px; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; }
+
+  /* ── Card hero ── */
+  .card-hero { padding: clamp(14px, 3vw, 28px); border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: clamp(12px, 2vw, 20px); position: relative; }
+  .avatar { width: clamp(40px, 8vw, 60px); height: clamp(40px, 8vw, 60px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(14px, 3vw, 22px); font-weight: 800; flex-shrink: 0; background: linear-gradient(135deg, var(--teal), #0a7ebd); color: var(--navy); }
+  .hero-info { flex: 1; min-width: 0; padding-right: clamp(60px, 15vw, 100px); }
+  .hero-info .name { font-size: clamp(15px, 3.5vw, 22px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hero-info .company { font-size: clamp(11px, 2vw, 13px); color: var(--muted); margin-top: 4px; }
+  .hero-info .phone { font-family: 'DM Mono', monospace; font-size: clamp(11px, 2vw, 13px); color: var(--teal); margin-top: 6px; }
+  .vip-badge { position: absolute; top: clamp(10px, 2vw, 20px); right: clamp(10px, 2vw, 24px); display: flex; align-items: center; gap: 5px; font-size: clamp(9px, 1.5vw, 11px); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
   .vip-badge.gold { background: rgba(245,200,66,.15); border: 1px solid rgba(245,200,66,.4); color: var(--gold); }
   .vip-badge.silver { background: rgba(180,190,210,.12); border: 1px solid rgba(180,190,210,.3); color: #b4bece; }
   .vip-badge.standard { background: rgba(122,144,184,.1); border: 1px solid rgba(122,144,184,.2); color: var(--muted); }
+
+  /* ── Card body — 2-col on wide, 1-col on narrow ── */
   .card-body { display: grid; grid-template-columns: 1fr 1fr; }
-  .section { padding: 20px 24px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .section { padding: clamp(12px, 2.5vw, 20px) clamp(14px, 3vw, 24px); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
   .section:nth-child(2n) { border-right: none; }
-  .section-label { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  @media (max-width: 480px) {
+    .card-body { grid-template-columns: 1fr; }
+    .section { border-right: none !important; }
+    .section:nth-child(2n) { border-right: none; }
+  }
+
+  /* ── KV rows ── */
+  .section-label { font-size: clamp(9px, 1.5vw, 10px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
   .kv-list { display: flex; flex-direction: column; gap: 7px; }
   .kv { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .kv-key { font-size: 11px; color: var(--muted); flex-shrink: 0; }
-  .kv-val { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--white); text-align: right; }
+  .kv-key { font-size: clamp(10px, 1.8vw, 11px); color: var(--muted); flex-shrink: 0; }
+  .kv-val { font-family: 'DM Mono', monospace; font-size: clamp(11px, 2vw, 12px); color: var(--white); text-align: right; word-break: break-all; }
   .kv-val.accent { color: var(--orange); }
   .kv-val.green  { color: var(--green); }
+
+  /* ── Tags ── */
   .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .tag { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; padding: 3px 9px; border-radius: 5px; }
+  .tag { font-size: clamp(9px, 1.5vw, 10px); font-weight: 600; letter-spacing: .07em; text-transform: uppercase; padding: 3px 9px; border-radius: 5px; }
   .tag.blue   { background:rgba(15,198,198,.12); color:var(--teal); border:1px solid rgba(15,198,198,.2); }
   .tag.orange { background:rgba(245,130,10,.12); color:var(--orange); border:1px solid rgba(245,130,10,.2); }
   .tag.muted  { background:rgba(122,144,184,.1); color:var(--muted); border:1px solid rgba(122,144,184,.15); }
+
+  /* ── Tickets ── */
   .ticket-list { display: flex; flex-direction: column; gap: 8px; }
-  .ticket-item { background: var(--navy2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 11px; }
-  .ticket-item .t-id { font-family: 'DM Mono', monospace; color: var(--muted); font-size: 10px; margin-bottom: 3px; }
+  .ticket-item { background: var(--navy2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: clamp(10px, 1.8vw, 11px); }
+  .ticket-item .t-id { font-family: 'DM Mono', monospace; color: var(--muted); font-size: clamp(9px, 1.5vw, 10px); margin-bottom: 3px; }
   .ticket-item .t-desc { color: var(--white); line-height: 1.4; }
-  .ticket-item .t-status { margin-top: 5px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .ticket-item .t-status { margin-top: 5px; font-size: clamp(9px, 1.5vw, 10px); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
   .t-status.open   { color: var(--orange); }
   .t-status.review { color: var(--teal); }
-  .placeholder { width: 100%; max-width: 720px; text-align: center; padding: 60px 24px; color: var(--muted); }
-  .placeholder .ph-icon { font-size: 40px; margin-bottom: 16px; opacity: .4; }
-  .placeholder p { font-size: 13px; line-height: 1.7; }
+
+  /* ── Placeholder ── */
+  .placeholder { width: 100%; max-width: 720px; text-align: center; padding: clamp(32px, 8vw, 60px) 24px; color: var(--muted); }
+  .placeholder .ph-icon { font-size: clamp(28px, 6vw, 40px); margin-bottom: 16px; opacity: .4; }
+  .placeholder p { font-size: clamp(11px, 2.2vw, 13px); line-height: 1.7; }
   .placeholder code { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--card); border: 1px solid var(--border); padding: 2px 7px; border-radius: 4px; color: var(--teal); }
-  .footer-note { width: 100%; max-width: 720px; margin-top: 20px; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; text-align: center; opacity: .6; }
-  .demo-bar { width: 100%; max-width: 720px; background: rgba(245,130,10,.06); border: 1px solid rgba(245,130,10,.2); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 11px; color: var(--orange); font-family: 'DM Mono', monospace; }
-  .demo-bar strong { display: block; margin-bottom: 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
-  .demo-phones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-  .demo-phones button { background: transparent; border: 1px solid rgba(245,130,10,.35); color: var(--orange); border-radius: 6px; padding: 4px 10px; font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer; transition: background .15s; }
+
+  /* ── Footer note ── */
+  .footer-note { width: 100%; max-width: 720px; margin-top: 20px; font-size: clamp(10px, 1.8vw, 11px); color: var(--muted); font-family: 'DM Mono', monospace; text-align: center; opacity: .6; }
+
+  /* ── Demo bar ── */
+  .demo-bar { width: 100%; max-width: 720px; background: rgba(245,130,10,.06); border: 1px solid rgba(245,130,10,.2); border-radius: 10px; padding: clamp(10px, 2vw, 12px) clamp(12px, 2.5vw, 16px); margin-bottom: 20px; font-size: clamp(10px, 1.8vw, 11px); color: var(--orange); font-family: 'DM Mono', monospace; }
+  .demo-bar strong { display: block; margin-bottom: 6px; font-size: clamp(9px, 1.5vw, 10px); letter-spacing: .1em; text-transform: uppercase; }
+  .demo-phones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .demo-phones button { background: transparent; border: 1px solid rgba(245,130,10,.35); color: var(--orange); border-radius: 6px; padding: 5px 10px; font-family: 'DM Mono', monospace; font-size: clamp(10px, 1.8vw, 11px); cursor: pointer; transition: background .15s; line-height: 1.3; }
   .demo-phones button:hover { background: rgba(245,130,10,.12); }
 </style>
 </head>
